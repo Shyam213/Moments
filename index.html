@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Enter</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Jost:wght@200;300;400&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink:    #1a1612;
+      --cream:  #f5f0e8;
+      --gold:   #b89b6a;
+      --muted:  #8a7f72;
+      --err:    #c0392b;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--ink);
+      color: var(--cream);
+      font-family: 'Jost', sans-serif;
+      font-weight: 200;
+      letter-spacing: 0.05em;
+      overflow: hidden;
+    }
+
+    /* animated grain overlay */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      background-size: 200px 200px;
+      pointer-events: none;
+      z-index: 1000;
+      opacity: 0.5;
+      animation: grain 0.8s steps(1) infinite;
+    }
+    @keyframes grain {
+      0%,100%{background-position:0 0}
+      10%{background-position:-5% -10%}
+      20%{background-position:-15% 5%}
+      30%{background-position:7% -25%}
+      40%{background-position:-5% 25%}
+      50%{background-position:-15% 10%}
+      60%{background-position:15% 0}
+      70%{background-position:0 15%}
+      80%{background-position:3% 35%}
+      90%{background-position:-10% 10%}
+    }
+
+    /* radial light bloom */
+    .bloom {
+      position: fixed;
+      width: 700px; height: 700px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(184,155,106,0.10) 0%, transparent 70%);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      animation: pulse 6s ease-in-out infinite alternate;
+    }
+    @keyframes pulse {
+      from { opacity: 0.6; transform: translate(-50%,-50%) scale(1); }
+      to   { opacity: 1;   transform: translate(-50%,-50%) scale(1.15); }
+    }
+
+    /* fine horizontal line decoration */
+    .lines {
+      position: fixed; inset: 0;
+      background-image: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 39px,
+        rgba(255,255,255,0.018) 40px
+      );
+      pointer-events: none;
+    }
+
+    /* main container */
+    .stage {
+      position: relative;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      z-index: 1;
+    }
+
+    /* logo / title */
+    .logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 300;
+      font-size: clamp(2.8rem, 6vw, 5rem);
+      color: var(--cream);
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeUp 1.2s cubic-bezier(0.16,1,0.3,1) 0.2s forwards;
+    }
+    .logo span {
+      color: var(--gold);
+      font-style: italic;
+      letter-spacing: 0.08em;
+    }
+
+    .tagline {
+      margin-top: 0.5rem;
+      font-size: 0.62rem;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--muted);
+      opacity: 0;
+      animation: fadeUp 1.2s cubic-bezier(0.16,1,0.3,1) 0.45s forwards;
+    }
+
+    /* divider */
+    .divider {
+      width: 60px; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      margin: 2.4rem auto;
+      opacity: 0;
+      animation: fadeIn 1s ease 0.7s forwards;
+    }
+
+    /* form */
+    .form-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.4rem;
+      opacity: 0;
+      animation: fadeUp 1s cubic-bezier(0.16,1,0.3,1) 0.85s forwards;
+    }
+
+    .input-label {
+      font-size: 0.6rem;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .code-input {
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid rgba(184,155,106,0.4);
+      padding: 0.7rem 0;
+      width: 220px;
+      text-align: center;
+      font-family: 'Jost', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 200;
+      letter-spacing: 0.6em;
+      color: var(--cream);
+      outline: none;
+      transition: border-color 0.3s;
+      caret-color: var(--gold);
+    }
+    .code-input::placeholder { color: rgba(245,240,232,0.15); letter-spacing: 0.3em; }
+    .code-input:focus { border-bottom-color: var(--gold); }
+
+    .error-msg {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      min-height: 2.5em;
+      opacity: 0;
+      transition: opacity 0.35s;
+    }
+    .error-msg.show { opacity: 1; }
+    .error-main {
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--err);
+      font-weight: 300;
+    }
+    .error-sub {
+      font-size: 0.58rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .enter-btn {
+      margin-top: 0.5rem;
+      background: transparent;
+      border: 1px solid rgba(184,155,106,0.5);
+      color: var(--gold);
+      font-family: 'Jost', sans-serif;
+      font-size: 0.6rem;
+      font-weight: 300;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      padding: 0.85rem 2.6rem;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: color 0.35s, border-color 0.35s;
+    }
+    .enter-btn::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: var(--gold);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.35s cubic-bezier(0.16,1,0.3,1);
+      z-index: -1;
+    }
+    .enter-btn:hover { color: var(--ink); border-color: var(--gold); }
+    .enter-btn:hover::before { transform: scaleX(1); }
+    .enter-btn:active { opacity: 0.8; }
+
+    /* shake animation for wrong code */
+    @keyframes shake {
+      0%,100%{transform:translateX(0)}
+      20%{transform:translateX(-8px)}
+      40%{transform:translateX(8px)}
+      60%{transform:translateX(-5px)}
+      80%{transform:translateX(5px)}
+    }
+    .shake { animation: shake 0.4s ease; }
+
+    /* page exit */
+    @keyframes exitPage {
+      to { opacity: 0; transform: scale(1.03); }
+    }
+    .exit { animation: exitPage 0.6s ease forwards; }
+
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+
+    /* corner ornaments */
+    .corner {
+      position: fixed;
+      width: 50px; height: 50px;
+      opacity: 0.25;
+    }
+    .corner--tl { top: 32px; left: 32px; border-top: 1px solid var(--gold); border-left: 1px solid var(--gold); }
+    .corner--tr { top: 32px; right: 32px; border-top: 1px solid var(--gold); border-right: 1px solid var(--gold); }
+    .corner--bl { bottom: 32px; left: 32px; border-bottom: 1px solid var(--gold); border-left: 1px solid var(--gold); }
+    .corner--br { bottom: 32px; right: 32px; border-bottom: 1px solid var(--gold); border-right: 1px solid var(--gold); }
+  </style>
+</head>
+<body>
+
+  <div class="bloom"></div>
+  <div class="lines"></div>
+  <div class="corner corner--tl"></div>
+  <div class="corner corner--tr"></div>
+  <div class="corner corner--bl"></div>
+  <div class="corner corner--br"></div>
+
+  <div class="stage" id="stage">
+    <p class="logo">Mo<span>ments</span></p>
+    <p class="tagline">A private gallery</p>
+    <div class="divider"></div>
+
+    <div class="form-wrap" id="formWrap">
+      <label class="input-label" for="codeField">Enter access code</label>
+      <input
+        class="code-input"
+        id="codeField"
+        type="password"
+        maxlength="12"
+        placeholder="· · · · ·"
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <div class="error-msg" id="errMsg">
+        <span class="error-main">✕ &nbsp;Incorrect code</span>
+        <span class="error-sub">Please try again</span>
+      </div>
+      <button class="enter-btn" type="button" id="enterBtn">Enter</button>
+    </div>
+  </div>
+
+  <script>
+    // ── ⚙️  SET YOUR SECRET CODE HERE ──────────────────────────────────────
+    const SECRET = "mysecret123";
+    // ────────────────────────────────────────────────────────────────────────
+
+    const input  = document.getElementById('codeField');
+    const btn    = document.getElementById('enterBtn');
+    const err    = document.getElementById('errMsg');
+    const stage  = document.getElementById('stage');
+    const wrap   = document.getElementById('formWrap');
+
+    function attempt() {
+      if (input.value.trim() === SECRET) {
+        err.classList.remove('show');
+        stage.classList.add('exit');
+        setTimeout(() => { window.location.href = 'gallery.html'; }, 600);
+      } else {
+        err.classList.add('show');
+        wrap.classList.remove('shake');
+        void wrap.offsetWidth; // reflow to restart animation
+        wrap.classList.add('shake');
+        wrap.style.opacity = '1';
+        input.value = '';
+        input.focus();
+      }
+    }
+
+    btn.addEventListener('click', attempt);
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') attempt(); });
+  </script>
+</body>
+</html>
